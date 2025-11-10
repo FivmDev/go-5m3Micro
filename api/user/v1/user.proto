@@ -1,0 +1,96 @@
+syntax="proto3";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+option go_package="./;proto";
+
+//protoc -I. --proto_path=../../../third_party --go_out=. --go-grpc_out=. --go-http_out=. user.proto
+//protoc -I. --proto_path=../../../third_party --go_out=. --go-grpc_out=. --gin_out=. user.proto
+
+service User{
+      rpc GetUserListInfo(PackageReq) returns (UserListInfo){
+        option (google.api.http) = {
+          get: "/v1/users"
+          body: "*"
+        };
+      };          //获取用户列表
+      rpc GetUserByMobile(MobileReq) returns (UserInfo){
+        option (google.api.http) = {
+          post: "/v1/users/mobile"
+          body: "*"
+        };
+      };               //通过Mobile查询用户
+      rpc GetUserById(IdReq) returns (UserInfo){
+        option (google.api.http) = {
+          post: "/v1/users/id"
+          body: "*"
+        };
+      };                       //通过Id查询用户
+      rpc CreateUser(CreateUserInfo) returns (UserInfo){
+        option (google.api.http) = {
+          post: "/v1/users/create"
+          body: "*"
+        };
+      };                //添加用户
+      rpc UpdateUser(UpdateUserInfo) returns (google.protobuf.Empty){
+        option (google.api.http) = {
+          post: "/v1/users/update"
+          body: "*"
+        };
+      };                //更新用户
+      rpc CheckPassword(CheckPasswordInfo) returns (CheckResult){
+        option (google.api.http) = {
+          post: "/v1/users/password"
+          body: "*"
+        };
+      };                //检查密码
+}
+
+message PackageReq{
+  uint32 pN = 1;      //页码
+  uint32 pSize = 2;   //每页容量
+}
+
+message UserListInfo{
+  uint64 total = 1;             //用户总数
+  repeated UserInfo data = 2;   //用户切片（数组）
+}
+
+message MobileReq{
+  string mobile = 1;    //手机号
+}
+
+message IdReq{
+  uint32 id = 1;        //id号
+}
+
+message UserInfo{
+  uint32 id = 1;          //id号
+  string nickName = 2;    //昵称
+  string gender = 3;      //性别
+  uint64 birthday = 4;    //生日
+  string mobile = 5;      //手机号
+  int32 role = 6;         //角色
+  string password = 7;    //md5带盐值加密后的密码
+}
+
+message CreateUserInfo{
+  string mobile = 1;        //手机号
+  string password = 2;      //md5带盐值加密后的密码
+}
+
+message UpdateUserInfo{
+  uint32 id = 1;          //id号
+  string nickName = 2;    //昵称
+  string gender = 3;      //性别
+  uint64 birthday = 4;    //生日
+  string password = 5;    //md5带盐值加密后的密码
+}
+
+message CheckPasswordInfo{
+  string password = 1;          //密码
+  string encryptPassword = 2;   //md5带盐值加密后的密码
+}
+
+message CheckResult{
+  bool success = 1;       //密码是否正确
+}
