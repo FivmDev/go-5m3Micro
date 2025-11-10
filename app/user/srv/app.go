@@ -13,10 +13,13 @@ import (
 
 func NewApp(basename string) *app.App {
 	cfg := config.New()
+	//application := app.NewApp("go-5m3Micro", basename,
+	//	app.WithOptions(cfg),
+	//	app.WithRunFunc(run(cfg)),
+	//	app.WithNoConfig())
 	application := app.NewApp("go-5m3Micro", basename,
 		app.WithOptions(cfg),
-		app.WithRunFunc(run(cfg)),
-		app.WithNoConfig())
+		app.WithRunFunc(run(cfg)))
 	return application
 }
 
