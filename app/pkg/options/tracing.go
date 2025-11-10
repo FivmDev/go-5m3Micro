@@ -13,7 +13,7 @@ type TelemetryOptions struct {
 	Endpoint string `json:"endpoint"`
 	// 采样率
 	Sampler float32 `json:"sampler"`
-	// 目前仅有 jaeger zapkin
+	// 目前仅有 jaeger zipkin
 	Batcher string `json:"batcher"`
 }
 
