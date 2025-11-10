@@ -1,6 +1,6 @@
 package trace
 
-type TelemetryOptions struct {
+type Options struct {
 	// 名称
 	Name string `json:"name"`
 	// url
@@ -11,8 +11,8 @@ type TelemetryOptions struct {
 	Batcher string `json:"batcher"`
 }
 
-func NewTelemetryOptions() *TelemetryOptions {
-	return &TelemetryOptions{
+func NewTelemetryOptions() *Options {
+	return &Options{
 		Name:     "go-5m3Micro",
 		Sampler:  1.0,
 		Batcher:  "jaeger",
