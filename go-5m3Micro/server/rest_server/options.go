@@ -8,6 +8,12 @@ func WithPort(port int) ServerOption {
 	}
 }
 
+func WithTracerName(name string) ServerOption {
+	return func(server *Server) {
+		server.tracerName = name
+	}
+}
+
 func WithMode(mode string) ServerOption {
 	return func(server *Server) {
 		server.mode = mode

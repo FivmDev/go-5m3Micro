@@ -47,6 +47,8 @@ type Server struct {
 	trans     ut.Translator
 	// http.server
 	httpServer *http.Server
+	// tracer name
+	tracerName string
 }
 
 func NewServer(opts ...ServerOption) *Server {
@@ -62,7 +64,8 @@ func NewServer(opts ...ServerOption) *Server {
 			Timeout:    5 * 24 * time.Hour,
 			MaxRefresh: 5 * 24 * time.Hour,
 		},
-		transName: "zh",
+		transName:  "zh",
+		tracerName: "go-5m3Micro-tracer",
 	}
 
 	for _, opt := range opts {
@@ -77,6 +80,8 @@ func NewServer(opts ...ServerOption) *Server {
 			log.Warnf("can not find middlewares: %v ", m)
 		}
 	}
+
+	srv.Use(middlewares.TracingHandler(srv.tracerName))
 	return srv
 }
 
