@@ -2,6 +2,7 @@ package rpc_server
 
 import (
 	"context"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"net"
 	"net/url"
 	"time"
@@ -29,6 +30,7 @@ type Server struct {
 	endpoint           *url.URL
 	metadata           *apimd.Server
 	timeout            time.Duration
+	enableTracing      bool
 }
 
 func (s *Server) Address() string {
@@ -38,8 +40,9 @@ func (s *Server) Address() string {
 func NewServer(opts ...ServerOption) *Server {
 	// 默认配置
 	srv := &Server{
-		address: ":0",
-		health:  health.NewServer(),
+		address:       ":0",
+		health:        health.NewServer(),
+		enableTracing: true,
 	}
 
 	// 填充参数配置
@@ -61,6 +64,10 @@ func NewServer(opts ...ServerOption) *Server {
 	// 将参数 grpcOptions []grpc.ServerOption 传入 options
 	if len(srv.grpcOptions) > 0 {
 		options = append(options, srv.grpcOptions...)
+	}
+
+	if srv.enableTracing {
+		options = append(options, grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	}
 
 	// 创建 gRPC 服务
@@ -116,6 +123,12 @@ func (s *Server) Exit(ctx context.Context) error {
 	s.Server.GracefulStop()
 	log.Info("[gRPC] server exit")
 	return nil
+}
+
+func WithEnableTracing(enableTracing bool) ServerOption {
+	return func(o *Server) {
+		o.enableTracing = enableTracing
+	}
 }
 
 func WithAddress(address string) ServerOption {
