@@ -5,6 +5,7 @@ import (
 	"go-5m3Micro/go-5m3Micro/registry"
 	"go-5m3Micro/go-5m3Micro/server/rpc_server/client_interceptors"
 	"go-5m3Micro/go-5m3Micro/server/rpc_server/resolver/discovery"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"time"
@@ -21,6 +22,7 @@ type client struct {
 	streamInterceptors []grpc.StreamClientInterceptor
 	grpcOptions        []grpc.DialOption
 	balanceName        string
+	enableTracing      bool
 }
 
 // WithClientAddress 客户端连接地址
@@ -34,6 +36,12 @@ func WithClientAddress(address string) ClientOption {
 func WithClientTimeout(timeout time.Duration) ClientOption {
 	return func(c *client) {
 		c.timeout = timeout
+	}
+}
+
+func WithClientEnableTracing(enable bool) ClientOption {
+	return func(c *client) {
+		c.enableTracing = enable
 	}
 }
 
@@ -103,6 +111,9 @@ func dial(ctx context.Context, isInsecure bool, opts ...ClientOption) (*grpc.Cli
 		grpc.WithChainUnaryInterceptor(unaryInterceptors...),
 		grpc.WithChainStreamInterceptor(streamInterceptors...),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"` + cli.balanceName + `"}`),
+	}
+	if cli.enableTracing {
+		grpcOpts = append(grpcOpts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	}
 	if len(cli.grpcOptions) > 0 {
 		grpcOpts = append(grpcOpts, cli.grpcOptions...)
