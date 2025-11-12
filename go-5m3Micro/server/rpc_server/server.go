@@ -31,6 +31,7 @@ type Server struct {
 	metadata           *apimd.Server
 	timeout            time.Duration
 	enableTracing      bool
+	enableMetric       bool
 }
 
 func (s *Server) Address() string {
@@ -43,6 +44,7 @@ func NewServer(opts ...ServerOption) *Server {
 		address:       ":0",
 		health:        health.NewServer(),
 		enableTracing: true,
+		enableMetric:  true,
 	}
 
 	// 填充参数配置
@@ -58,7 +60,9 @@ func NewServer(opts ...ServerOption) *Server {
 	if len(srv.unaryInterceptors) > 0 {
 		interceptors = append(interceptors, srv.unaryInterceptors...)
 	}
-
+	if srv.enableMetric {
+		interceptors = append(interceptors, srvints.UnaryMetricsInterceptor)
+	}
 	// 将多个一元拦截器（Unary Interceptor）链接成一个拦截器链
 	options := []grpc.ServerOption{grpc.ChainUnaryInterceptor(interceptors...)}
 	// 将参数 grpcOptions []grpc.ServerOption 传入 options
@@ -128,6 +132,12 @@ func (s *Server) Exit(ctx context.Context) error {
 func WithEnableTracing(enableTracing bool) ServerOption {
 	return func(o *Server) {
 		o.enableTracing = enableTracing
+	}
+}
+
+func WithEnableMetric(enableMetric bool) ServerOption {
+	return func(o *Server) {
+		o.enableMetric = enableMetric
 	}
 }
 
