@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	ut "github.com/go-playground/universal-translator"
+	"github.com/penglongli/gin-metrics/ginmetrics"
 )
 
 type JwtInfo struct {
@@ -48,7 +49,8 @@ type Server struct {
 	// http.server
 	httpServer *http.Server
 	// tracer name
-	tracerName string
+	tracerName   string
+	enableMetric bool
 }
 
 func NewServer(opts ...ServerOption) *Server {
@@ -64,12 +66,27 @@ func NewServer(opts ...ServerOption) *Server {
 			Timeout:    5 * 24 * time.Hour,
 			MaxRefresh: 5 * 24 * time.Hour,
 		},
-		transName:  "zh",
-		tracerName: "go-5m3Micro-tracer",
+		transName:    "zh",
+		tracerName:   "go-5m3Micro-tracer",
+		enableMetric: true,
 	}
 
 	for _, opt := range opts {
 		opt(srv)
+	}
+
+	if srv.enableMetric {
+		// get global Monitor object
+		m := ginmetrics.GetMonitor()
+		// +optional set metric path, default /debug/metrics
+		m.SetMetricPath("/metrics")
+		// +optional set slow time, default 5s
+		m.SetSlowTime(10)
+		// +optional set request duration, default {0.1, 0.3, 1.2, 5, 10}
+		// used to p95, p99
+		m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
+		// set middleware for gin
+		m.Use(srv)
 	}
 
 	for _, m := range srv.middlewares {
