@@ -23,6 +23,7 @@ type client struct {
 	grpcOptions        []grpc.DialOption
 	balanceName        string
 	enableTracing      bool
+	enableMetric       bool
 }
 
 // WithClientAddress 客户端连接地址
@@ -42,6 +43,12 @@ func WithClientTimeout(timeout time.Duration) ClientOption {
 func WithClientEnableTracing(enable bool) ClientOption {
 	return func(c *client) {
 		c.enableTracing = enable
+	}
+}
+
+func WithClientEnableMetric(enable bool) ClientOption {
+	return func(c *client) {
+		c.enableMetric = enable
 	}
 }
 
@@ -100,7 +107,9 @@ func dial(ctx context.Context, isInsecure bool, opts ...ClientOption) (*grpc.Cli
 	unaryInterceptors := []grpc.UnaryClientInterceptor{
 		client_interceptors.TimeoutUnaryClientInterceptor(cli.timeout)}
 	streamInterceptors := []grpc.StreamClientInterceptor{}
-
+	if cli.enableMetric {
+		unaryInterceptors = append(unaryInterceptors, client_interceptors.UnaryMetricsInterceptor())
+	}
 	if len(cli.unaryInterceptors) > 0 {
 		unaryInterceptors = append(unaryInterceptors, cli.unaryInterceptors...)
 	}
