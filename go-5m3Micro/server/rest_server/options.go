@@ -14,6 +14,12 @@ func WithTracerName(name string) ServerOption {
 	}
 }
 
+func WithEnableMetric(enableMetric bool) ServerOption {
+	return func(server *Server) {
+		server.enableMetric = enableMetric
+	}
+}
+	
 func WithMode(mode string) ServerOption {
 	return func(server *Server) {
 		server.mode = mode
